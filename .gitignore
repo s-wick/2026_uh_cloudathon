@@ -1,0 +1,12 @@
+# secrets and lab access files
+.env
+*.pem
+ec2
+fingerprint
+SSH.md
+
+# build output
+node_modules/
+cdk.out/
+dist/
+*.log
