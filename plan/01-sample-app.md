@@ -1,6 +1,19 @@
 # 01 - Sample app: StoreOps
 
-Status: **current focus**. Time budget: about 25 minutes to build, 5 to verify locally.
+Status: **done** (2026-11-07). `npm test` passes (7 tests, memory store) and `npm run test:dynamo` passes the same 7 tests against DynamoDB Local. `SERVE_WEB=1 npm start` serves the page and API; the page was checked in a browser. The `linux/arm64` image builds and, run under emulation against DynamoDB Local, serves requests and exits 0 on SIGTERM.
+
+Testing against DynamoDB Local (no AWS account needed):
+
+```
+docker run -d --name storeops-ddb -p 8000:8000 amazon/dynamodb-local -jar DynamoDBLocal.jar -inMemory -sharedDb
+npm run test:dynamo          # creates and deletes one table per test; refuses non-local endpoints
+```
+
+To run the app itself against it, create a table named `storeops` with the keys and index from "Data model" (`aws dynamodb create-table --endpoint-url http://localhost:8000 ...`), then start with `TABLE_NAME=storeops`, `AWS_ENDPOINT_URL_DYNAMODB=http://localhost:8000`, `AWS_REGION=us-west-2` and dummy `AWS_ACCESS_KEY_ID` / `AWS_SECRET_ACCESS_KEY`. The `-sharedDb` flag matters: without it DynamoDB Local keeps separate tables per access key and region.
+
+As built, differences from the text below: Node.js 24 (`node:24-alpine`), because Node 20 reached end of life in April 2026. Catalog (SKUs, names, prices) lives in `src/seed.js`; DynamoDB holds stock. Products are read by key with `BatchGetItem`, not a scan. Shared shapes and errors are in `src/model.js`.
+
+Time budget: about 25 minutes to build, 5 to verify locally.
 
 ## Purpose
 

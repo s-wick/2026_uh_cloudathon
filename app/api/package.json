@@ -1,0 +1,20 @@
+{
+  "name": "storeops-api",
+  "version": "1.0.0",
+  "private": true,
+  "description": "StoreOps API: orders and inventory for AnyCompany stores (Cloudathon POC).",
+  "main": "src/server.js",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "start": "node src/server.js",
+    "test": "node --test test/app.test.js",
+    "test:dynamo": "node --env-file=test/dynamo-local.env --test test/app.test.js"
+  },
+  "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.700.0",
+    "@aws-sdk/lib-dynamodb": "^3.700.0",
+    "express": "^5.1.0"
+  }
+}

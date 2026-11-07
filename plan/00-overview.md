@@ -27,8 +27,8 @@ Users -> CloudFront (global edge)
 
 | # | File | Output | Status |
 |---|------|--------|--------|
-| 1 | [01-sample-app.md](01-sample-app.md) | `app/api`, `app/web`, runs locally | **current focus** |
-| 2 | [02-cdk-infrastructure.md](02-cdk-infrastructure.md) | `cdk/` stack | not started |
+| 1 | [01-sample-app.md](01-sample-app.md) | `app/api`, `app/web`, runs locally | done |
+| 2 | [02-cdk-infrastructure.md](02-cdk-infrastructure.md) | `cdk/` stack | **current focus** |
 | 3 | [03-deploy-and-verify.md](03-deploy-and-verify.md) | live stack, chaos/scale/deploy proof | not started |
 | 4 | [04-diagram-and-report.md](04-diagram-and-report.md) | `docs/architecture.drawio`, `docs/report.md` | not started |
 | 5 | [05-story-and-pitch.md](05-story-and-pitch.md) | `docs/story.md`, demo run-sheet | not started |
