@@ -1,6 +1,13 @@
 # 02 - CDK infrastructure
 
-Status: not started. Depends on phase 1. Time budget: about 40 minutes.
+Status: done. Bootstrapped and v1 deployed 2026-11-07 (`https://d1ert8u7dbizbw.cloudfront.net`). Depends on phase 1. Time budget: about 40 minutes.
+
+Built differently from the plan below:
+- No `cdk init`: files written by hand, versions pinned (`aws-cdk-lib` 2.275.0, CLI 2.1148.0, TypeScript 5.9, ts-node). Run with `npx cdk ...` inside `cdk/`.
+- ALB listener open only to the CloudFront origin-facing prefix list (`pl-82a045eb`, cached in `cdk/cdk.context.json`). Direct `curl` to the ALB DNS name times out by design; test through the CloudFront URL.
+- `/api/products` uses a custom cache policy (TTL min 0, default 0, max 5 min), so the origin's `s-maxage=30` decides.
+- `APP_VERSION` comes from CDK context: `npx cdk deploy -c appVersion=v2` for the rolling-deploy demo.
+- Probe results: `CDKToolkit` stack does not exist (bootstrap needed). IAM policy simulator says `WSParticipantRole` may create roles, stacks, ECS, ECR, DynamoDB, CloudFront, Lambda. Not proven until bootstrap runs.
 
 ## Layout
 
@@ -16,7 +23,7 @@ Create with `cdk init app --language typescript` inside `cdk/`, then replace the
 
 ## Construct `ThreeTierWorkload` (props: name, apiImageDir, webDir, apiCpu, apiMemory, minTasks, maxTasks, appVersion)
 
-1. **Network**: `ec2.Vpc` with `maxAzs: 2`, public and private-with-egress subnets, `natGateways: 1` for the POC (document 2 for production, or VPC endpoints).
+1. **Network**: `ec2.Vpc` with `maxAzs: 2`, public and private-with-egress subnets, `natGateways: 2` (one per AZ) plus gateway endpoints for DynamoDB and S3 (D39).
 2. **Data**: `dynamodb.Table`, `PAY_PER_REQUEST`, partition key `pk` (string), point-in-time recovery on, removal policy `DESTROY` for the lab. Add GSI `gsi1` (`gsi1pk` string, sort `createdAt` string).
 3. **API**: `ecs_patterns.ApplicationLoadBalancedFargateService`, ARM64 (`runtimePlatform` with `CpuArchitecture.ARM64`), image from `ContainerImage.fromAsset('../app/api')`, `desiredCount: 2`, health check `/api/health`, env `TABLE_NAME`, `APP_VERSION`, `PORT`. Rolling updates with `minHealthyPercent: 100`, `maxHealthyPercent: 200`, `circuitBreaker: { rollback: true }`. Deregistration delay 30 seconds. Table `grantReadWriteData`.
 4. **Autoscaling**: `service.autoScaleTaskCount({ minCapacity: 2, maxCapacity: 10 })` with `scaleOnCpuUtilization(50)` and `scaleOnRequestCount` per target.

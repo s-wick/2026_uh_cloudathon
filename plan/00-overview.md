@@ -28,8 +28,8 @@ Users -> CloudFront (global edge)
 | # | File | Output | Status |
 |---|------|--------|--------|
 | 1 | [01-sample-app.md](01-sample-app.md) | `app/api`, `app/web`, runs locally | done |
-| 2 | [02-cdk-infrastructure.md](02-cdk-infrastructure.md) | `cdk/` stack | **current focus** |
-| 3 | [03-deploy-and-verify.md](03-deploy-and-verify.md) | live stack, chaos/scale/deploy proof | not started |
+| 2 | [02-cdk-infrastructure.md](02-cdk-infrastructure.md) | `cdk/` stack | done (v1 deployed) |
+| 3 | [03-deploy-and-verify.md](03-deploy-and-verify.md) | live stack, chaos/scale/deploy proof | **current focus** |
 | 4 | [04-diagram-and-report.md](04-diagram-and-report.md) | `docs/architecture.drawio`, `docs/report.md` | not started |
 | 5 | [05-story-and-pitch.md](05-story-and-pitch.md) | `docs/story.md`, demo run-sheet | not started |
 
@@ -43,4 +43,4 @@ Aurora/RDS, WAF, custom domain with Route 53 and ACM, multi-region, CI/CD pipeli
 
 - Never commit or print `.env`, `*.pem`, `ec2`, `fingerprint`, `SSH.md`. `.gitignore` and `.claude/settings.json` enforce this.
 - Cost figures about AnyCompany's current state are assumptions and must be labelled "illustrative scenario". AWS-side figures come from the AWS Pricing Calculator.
-- Tear down with `cdk destroy` after judging (the NAT gateway bills hourly).
+- Tear down with `cdk destroy` after judging (the 2 NAT gateways bill hourly).

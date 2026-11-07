@@ -62,6 +62,7 @@ Decided in planning. Infrastructure parts (D6 to D9) get built in phase 2.
 - **Cost:** CloudFront to load balancer is plain HTTP in the POC. HTTPS to origin is a next step.
 
 ### D8. Two Availability Zones, at least 2 tasks, 1 NAT gateway
+Replaced by D39 (NAT part only).
 - **Pick:** VPC across 2 AZs. Load balancer in both. At least 2 API tasks, spread across AZs. Tasks in private subnets.
 - **Why:** an Availability Zone is a separate data center. One AZ down, app stays up. Today AnyCompany runs from one building: single point of failure.
 - **Cost:** 1 NAT gateway is itself a single point for outbound traffic. Production: 2 NATs or VPC endpoints. NAT bills hourly, so tear down after judging.
@@ -164,3 +165,67 @@ Decided in planning. Infrastructure parts (D6 to D9) get built in phase 2.
 - **Pick:** work on a phase branch, open a PR into `main`, test plan as checkboxes in the PR.
 - **Why:** reviewable history. PR test plan shows judges what was proven and what was not.
 - **Cost:** none.
+
+---
+
+## Phase 2: CDK infrastructure
+
+### D28. CDK project by hand, versions pinned
+- **Pick:** no `cdk init`. `aws-cdk-lib` 2.275.0 and CLI 2.1148.0 as local dependencies, TypeScript 5.9 via ts-node.
+- **Why:** CDK CLI not installed globally. Pinned versions: same synth on every laptop. No unused init boilerplate (Jest, sample test).
+- **Cost:** none.
+
+### D29. Load balancer reachable only from CloudFront
+- **Pick:** ALB listener open only to AWS's CloudFront origin-facing prefix list. Tasks accept only the ALB on 8080.
+- **Why:** nobody can skip the edge and hit the API directly. One security group rule, no extra service.
+- **Cost:** direct `curl` to the ALB times out; test through CloudFront. Any CloudFront distribution could still reach it. Next step: secret origin header or CloudFront VPC origin with an internal ALB.
+
+### D30. Product list cached at the edge, origin decides how long
+- **Pick:** `/api/products` behaviour with a custom cache policy, TTL min 0, default 0, max 5 min. The app sends `s-maxage=30`. All other `/api/*` paths: caching off, all methods, viewer headers forwarded except Host.
+- **Why:** edge-hit demo. Cache time lives in app code next to the data it describes. Orders and stock changes never cached.
+- **Cost:** stock shown can be up to 30 s old. Order placement re-checks stock in the transaction (D16), so no overselling.
+
+### D31. Autoscaling on CPU, request count as backup
+- **Pick:** 2 to 10 tasks. Target 50% CPU, and 1000 requests per task per minute. Scale out after 30 s, scale in after 120 s.
+- **Why:** `/api/work` (D21) drives CPU for the demo. Fast scale-out shows on stage. Slow scale-in avoids flapping.
+- **Cost:** may run more tasks than needed for 2 minutes after a spike.
+
+### D32. Small tasks: 0.25 vCPU, 512 MiB
+- **Pick:** smallest Fargate size that fits Node comfortably.
+- **Why:** cheapest per task. Scaling adds tasks, not bigger tasks. Small tasks also hit 50% CPU fast for the demo.
+- **Cost:** one burst request (`/api/work`) can hold a whole task's CPU.
+
+### D33. Fast health checks
+- **Pick:** `/api/health` every 10 s, 2 failures mark a task unhealthy, 2 passes mark it healthy. Drain 30 s (D19).
+- **Why:** self-healing demo: a stopped task leaves the pool in about 20 s, a new one joins in about 20 s after it starts.
+- **Cost:** a little more health-check traffic. Negligible.
+
+### D34. Lab teardown is one command
+- **Pick:** table, bucket and log group set to delete with the stack; bucket empties itself. VPC default security group stripped of rules.
+- **Why:** lab account, NAT and ALB bill hourly (D8). `cdk destroy` leaves nothing behind.
+- **Cost:** production must flip table and bucket to retain. Point-in-time recovery stays on regardless.
+
+### D35. CloudFront price class 100
+- **Pick:** edge locations in North America and Europe only.
+- **Why:** AnyCompany is a Houston retailer; its customers are in the US. Cheapest class.
+- **Cost:** slower for viewers in Asia or South America. One setting to change.
+
+### D36. Alarms without notifications
+- **Pick:** two alarms. 5 or more 5xx responses (ALB plus tasks) in a minute. Any unhealthy task for 2 minutes. No SNS topic.
+- **Why:** shows the monitoring story in the console during the demo. Missing data counts as OK, so a quiet app stays green.
+- **Cost:** nobody gets paged. Production: SNS to the on-call channel.
+
+### D37. App version from CDK context
+- **Pick:** `APP_VERSION` defaults to `v1`; `npx cdk deploy -c appVersion=v2` rolls out v2.
+- **Why:** rolling-deploy demo with no code change and no file edit. New value, new task definition, ECS replaces tasks 2 at a time with rollback on failure.
+- **Cost:** version is not tied to a git commit. Real pipeline: image tag from the commit SHA.
+
+### D38. Logs kept one week
+- **Pick:** API log group retention 1 week.
+- **Why:** enough to debug the demo. Logs never kept forever by accident (CloudWatch default).
+- **Cost:** no long-term audit trail. Production: longer retention or export to S3.
+
+### D39. NAT gateway per AZ, gateway endpoints for DynamoDB and S3
+- **Pick:** 2 NAT gateways, one per AZ. Free gateway endpoints for DynamoDB and S3. Replaces the 1-NAT part of D8.
+- **Why:** brief asks for no single point of failure. With 1 NAT, losing its AZ cuts outbound traffic for tasks in the other AZ: no database, no image pulls, so no replacement tasks. Endpoints keep database calls and image layers (stored in S3) off NAT: no NAT data charge, one less hop.
+- **Cost:** second NAT bills hourly (about $0.045/hr in us-west-2), a few cents for the lab window. ECR API and CloudWatch Logs still go through NAT. Interface endpoints would remove that, but cost more per hour than a second NAT.
