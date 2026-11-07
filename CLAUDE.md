@@ -8,7 +8,7 @@ Hackathon project: migrate and modernize one legacy app (StoreOps) to AWS using 
 - API: Node.js 24 + Express 5 in `app/api`, container on ECS Fargate (ARM64). Test: `cd app/api && npm test` (memory store); `npm run test:dynamo` runs the same tests against DynamoDB Local on port 8000 (setup in `plan/01-sample-app.md`). Local page: `SERVE_WEB=1 npm start`, then http://localhost:8080.
 - Web: static HTML/JS in `app/web`, served by S3 + CloudFront.
 - Data: DynamoDB, on-demand.
-- Docs: `docs/` (draw.io diagram, report, pitch story). `docs/design-story.md` is the living log of design choices (separate from the pitch story in `docs/story.md`).
+- Docs: `docs/` (draw.io diagram, report, pitch story). `docs/design-story.md` is the living log of design choices (separate from the pitch story in `docs/story.md`). `docs/glossary.md` explains cloud terms for human readers; agents skip it (excluded from search via `.ignore`) unless asked to edit it.
 
 ## AWS access
 
