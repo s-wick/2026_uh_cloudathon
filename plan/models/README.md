@@ -4,6 +4,7 @@ Diagrams that explain the StoreOps POC. Each file holds Mermaid source, which Gi
 
 | # | Model | Type | Answers |
 |---|---|---|---|
+| 00 | [Services overview](00-services-overview.png) | Image (PNG) | Start here: what each AWS service does, which pain point it solves, how a request flows |
 | - | Target architecture | FigJam board | What runs where (edge, VPC, data, operations, roadmap) |
 | 01 | [Request flow](01-request-flow.md) | Sequence | What happens when a shopper loads the page and buys |
 | 02 | [Order logic](02-order-logic.md) | Flowchart | When the API returns 201, 400 or 409 |
