@@ -62,6 +62,7 @@ Decided in planning. Infrastructure parts (D6 to D9) get built in phase 2.
 - **Cost:** CloudFront to load balancer is plain HTTP in the POC. HTTPS to origin is a next step.
 
 ### D8. Two Availability Zones, at least 2 tasks, 1 NAT gateway
+Replaced by D39 (NAT part only).
 - **Pick:** VPC across 2 AZs. Load balancer in both. At least 2 API tasks, spread across AZs. Tasks in private subnets.
 - **Why:** an Availability Zone is a separate data center. One AZ down, app stays up. Today AnyCompany runs from one building: single point of failure.
 - **Cost:** 1 NAT gateway is itself a single point for outbound traffic. Production: 2 NATs or VPC endpoints. NAT bills hourly, so tear down after judging.
@@ -223,3 +224,8 @@ Decided in planning. Infrastructure parts (D6 to D9) get built in phase 2.
 - **Pick:** API log group retention 1 week.
 - **Why:** enough to debug the demo. Logs never kept forever by accident (CloudWatch default).
 - **Cost:** no long-term audit trail. Production: longer retention or export to S3.
+
+### D39. NAT gateway per AZ, gateway endpoints for DynamoDB and S3
+- **Pick:** 2 NAT gateways, one per AZ. Free gateway endpoints for DynamoDB and S3. Replaces the 1-NAT part of D8.
+- **Why:** brief asks for no single point of failure. With 1 NAT, losing its AZ cuts outbound traffic for tasks in the other AZ: no database, no image pulls, so no replacement tasks. Endpoints keep database calls and image layers (stored in S3) off NAT: no NAT data charge, one less hop.
+- **Cost:** second NAT bills hourly (about $0.045/hr in us-west-2), a few cents for the lab window. ECR API and CloudWatch Logs still go through NAT. Interface endpoints would remove that, but cost more per hour than a second NAT.

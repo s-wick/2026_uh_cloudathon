@@ -23,7 +23,7 @@ Create with `cdk init app --language typescript` inside `cdk/`, then replace the
 
 ## Construct `ThreeTierWorkload` (props: name, apiImageDir, webDir, apiCpu, apiMemory, minTasks, maxTasks, appVersion)
 
-1. **Network**: `ec2.Vpc` with `maxAzs: 2`, public and private-with-egress subnets, `natGateways: 1` for the POC (document 2 for production, or VPC endpoints).
+1. **Network**: `ec2.Vpc` with `maxAzs: 2`, public and private-with-egress subnets, `natGateways: 2` (one per AZ) plus gateway endpoints for DynamoDB and S3 (D39).
 2. **Data**: `dynamodb.Table`, `PAY_PER_REQUEST`, partition key `pk` (string), point-in-time recovery on, removal policy `DESTROY` for the lab. Add GSI `gsi1` (`gsi1pk` string, sort `createdAt` string).
 3. **API**: `ecs_patterns.ApplicationLoadBalancedFargateService`, ARM64 (`runtimePlatform` with `CpuArchitecture.ARM64`), image from `ContainerImage.fromAsset('../app/api')`, `desiredCount: 2`, health check `/api/health`, env `TABLE_NAME`, `APP_VERSION`, `PORT`. Rolling updates with `minHealthyPercent: 100`, `maxHealthyPercent: 200`, `circuitBreaker: { rollback: true }`. Deregistration delay 30 seconds. Table `grantReadWriteData`.
 4. **Autoscaling**: `service.autoScaleTaskCount({ minCapacity: 2, maxCapacity: 10 })` with `scaleOnCpuUtilization(50)` and `scaleOnRequestCount` per target.

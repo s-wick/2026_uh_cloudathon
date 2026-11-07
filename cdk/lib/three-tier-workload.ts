@@ -36,14 +36,19 @@ export class ThreeTierWorkload extends Construct {
   constructor(scope: Construct, id: string, props: ThreeTierWorkloadProps) {
     super(scope, id);
 
-    // Network: 2 AZs, tasks in private subnets, 1 NAT for the POC (D8).
+    // Network: 2 AZs, tasks in private subnets, 1 NAT per AZ (D8, D39).
+    // DynamoDB and S3 (ECR image layers) bypass NAT via free gateway endpoints (D39).
     const vpc = new ec2.Vpc(this, 'Vpc', {
       maxAzs: 2,
-      natGateways: 1,
+      natGateways: 2,
       subnetConfiguration: [
         { name: 'public', subnetType: ec2.SubnetType.PUBLIC, cidrMask: 24 },
         { name: 'app', subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS, cidrMask: 24 },
       ],
+      gatewayEndpoints: {
+        DynamoDb: { service: ec2.GatewayVpcEndpointAwsService.DYNAMODB },
+        S3: { service: ec2.GatewayVpcEndpointAwsService.S3 },
+      },
     });
 
     // Data: single table, contract shared with app/api/test/app.test.js (D6, D15).
