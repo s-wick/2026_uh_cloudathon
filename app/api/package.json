@@ -9,7 +9,8 @@
   },
   "scripts": {
     "start": "node src/server.js",
-    "test": "node --test test/app.test.js"
+    "test": "node --test test/app.test.js",
+    "test:dynamo": "node --env-file=test/dynamo-local.env --test test/app.test.js"
   },
   "dependencies": {
     "@aws-sdk/client-dynamodb": "^3.700.0",

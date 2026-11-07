@@ -5,7 +5,7 @@ Hackathon project: migrate and modernize one legacy app (StoreOps) to AWS using 
 ## Stack
 
 - IaC: AWS CDK, TypeScript, in `cdk/`.
-- API: Node.js 24 + Express 5 in `app/api`, container on ECS Fargate (ARM64). Test: `cd app/api && npm test`. Local page: `SERVE_WEB=1 npm start`, then http://localhost:8080.
+- API: Node.js 24 + Express 5 in `app/api`, container on ECS Fargate (ARM64). Test: `cd app/api && npm test` (memory store); `npm run test:dynamo` runs the same tests against DynamoDB Local on port 8000 (setup in `plan/01-sample-app.md`). Local page: `SERVE_WEB=1 npm start`, then http://localhost:8080.
 - Web: static HTML/JS in `app/web`, served by S3 + CloudFront.
 - Data: DynamoDB, on-demand.
 - Docs: `docs/` (draw.io diagram, report, story).

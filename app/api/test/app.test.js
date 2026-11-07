@@ -1,14 +1,64 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
+const crypto = require('node:crypto');
 const { once } = require('node:events');
 const { createApp } = require('../src/app');
 const { createMemoryStore } = require('../src/store-memory');
 const { CATALOG } = require('../src/seed');
 
-// Starts a fresh app with a seeded memory store; returns a fetch bound to it.
+// With DYNAMODB_TEST_ENDPOINT set (see `npm run test:dynamo`), every test runs
+// against its own fresh table in DynamoDB Local instead of the memory store.
+const DYNAMO_ENDPOINT = process.env.DYNAMODB_TEST_ENDPOINT;
+
+async function createLocalDynamoStore(t) {
+  const { hostname } = new URL(DYNAMO_ENDPOINT);
+  // Tests create and delete tables: never point them at real AWS.
+  assert.ok(['localhost', '127.0.0.1'].includes(hostname), 'DYNAMODB_TEST_ENDPOINT must be a local endpoint');
+  Object.assign(process.env, {
+    AWS_ENDPOINT_URL_DYNAMODB: DYNAMO_ENDPOINT,
+    AWS_REGION: 'us-west-2',
+    AWS_ACCESS_KEY_ID: 'local',
+    AWS_SECRET_ACCESS_KEY: 'local',
+  });
+  delete process.env.AWS_SESSION_TOKEN;
+  delete process.env.AWS_PROFILE;
+
+  const { DynamoDBClient, CreateTableCommand, DeleteTableCommand } = require('@aws-sdk/client-dynamodb');
+  const { createDynamoStore } = require('../src/store-dynamo');
+  const client = new DynamoDBClient({});
+  const TableName = `storeops-test-${crypto.randomUUID()}`;
+  // Same keys and index as the CDK table (phase 2).
+  await client.send(
+    new CreateTableCommand({
+      TableName,
+      BillingMode: 'PAY_PER_REQUEST',
+      AttributeDefinitions: [
+        { AttributeName: 'pk', AttributeType: 'S' },
+        { AttributeName: 'gsi1pk', AttributeType: 'S' },
+        { AttributeName: 'createdAt', AttributeType: 'S' },
+      ],
+      KeySchema: [{ AttributeName: 'pk', KeyType: 'HASH' }],
+      GlobalSecondaryIndexes: [
+        {
+          IndexName: 'gsi1',
+          KeySchema: [
+            { AttributeName: 'gsi1pk', KeyType: 'HASH' },
+            { AttributeName: 'createdAt', KeyType: 'RANGE' },
+          ],
+          Projection: { ProjectionType: 'ALL' },
+        },
+      ],
+    }),
+  );
+  t.after(() => client.send(new DeleteTableCommand({ TableName })));
+  return createDynamoStore(TableName);
+}
+
+// Starts a fresh app with a seeded store; returns a fetch bound to it.
 async function start(t) {
-  const store = createMemoryStore();
-  await store.seedIfEmpty();
+  const store = DYNAMO_ENDPOINT ? await createLocalDynamoStore(t) : createMemoryStore();
+  assert.equal(await store.seedIfEmpty(), CATALOG.length);
+  assert.equal(await store.seedIfEmpty(), 0, 'seed must be idempotent');
   const meta = { taskId: 'test-task', az: 'test-az', startedAt: new Date().toISOString() };
   const app = createApp({ store, meta, version: 'test-v', log: false });
   const server = app.listen(0, '127.0.0.1');
