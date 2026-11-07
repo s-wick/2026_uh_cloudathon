@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>StoreOps</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="top">
+    <h1>StoreOps <span class="sub">AnyCompany store orders and inventory</span></h1>
+  </header>
+
+  <main>
+    <section aria-labelledby="catalog-h">
+      <h2 id="catalog-h">Catalog</h2>
+      <p id="order-status" class="status" role="status" aria-live="polite"></p>
+      <ul id="products" class="grid"></ul>
+    </section>
+
+    <section aria-labelledby="orders-h">
+      <h2 id="orders-h">Latest orders</h2>
+      <ol id="orders" class="orders"></ol>
+    </section>
+  </main>
+
+  <details id="demo" class="demo" open>
+    <summary>Demo panel</summary>
+    <dl>
+      <dt>Version</dt><dd id="d-version">-</dd>
+      <dt>Task</dt><dd id="d-task">-</dd>
+      <dt>AZ</dt><dd id="d-az">-</dd>
+      <dt>Store</dt><dd id="d-store">-</dd>
+      <dt>Last request</dt><dd id="d-rtt">-</dd>
+      <dt>Edge cache</dt><dd id="d-cache">-</dd>
+    </dl>
+    <div class="controls">
+      <button type="button" id="burn" aria-pressed="false">Burn CPU</button>
+      <button type="button" id="spam" aria-pressed="false">Spam requests</button>
+      <button type="button" id="edge">Fetch catalog (edge test)</button>
+    </div>
+    <p id="d-counts" class="counts" aria-live="polite"></p>
+  </details>
+
+  <script src="app.js"></script>
+</body>
+</html>

@@ -1,6 +1,10 @@
 # 01 - Sample app: StoreOps
 
-Status: **current focus**. Time budget: about 25 minutes to build, 5 to verify locally.
+Status: **done** (2026-11-07). `npm test` passes (7 tests); `SERVE_WEB=1 npm start` serves the page and API. Docker image build not yet run: Docker Desktop daemon was not running.
+
+As built, differences from the text below: Node.js 24 (`node:24-alpine`), because Node 20 reached end of life in April 2026. Catalog (SKUs, names, prices) lives in `src/seed.js`; DynamoDB holds stock. Products are read by key with `BatchGetItem`, not a scan. Shared shapes and errors are in `src/model.js`.
+
+Time budget: about 25 minutes to build, 5 to verify locally.
 
 ## Purpose
 
