@@ -1,6 +1,13 @@
 # 02 - CDK infrastructure
 
-Status: not started. Depends on phase 1. Time budget: about 40 minutes.
+Status: done. Bootstrapped and v1 deployed 2026-11-07 (`https://d1ert8u7dbizbw.cloudfront.net`). Depends on phase 1. Time budget: about 40 minutes.
+
+Built differently from the plan below:
+- No `cdk init`: files written by hand, versions pinned (`aws-cdk-lib` 2.275.0, CLI 2.1148.0, TypeScript 5.9, ts-node). Run with `npx cdk ...` inside `cdk/`.
+- ALB listener open only to the CloudFront origin-facing prefix list (`pl-82a045eb`, cached in `cdk/cdk.context.json`). Direct `curl` to the ALB DNS name times out by design; test through the CloudFront URL.
+- `/api/products` uses a custom cache policy (TTL min 0, default 0, max 5 min), so the origin's `s-maxage=30` decides.
+- `APP_VERSION` comes from CDK context: `npx cdk deploy -c appVersion=v2` for the rolling-deploy demo.
+- Probe results: `CDKToolkit` stack does not exist (bootstrap needed). IAM policy simulator says `WSParticipantRole` may create roles, stacks, ECS, ECR, DynamoDB, CloudFront, Lambda. Not proven until bootstrap runs.
 
 ## Layout
 
