@@ -6,7 +6,7 @@ Status: not started. Can run in parallel with phase 3 once phase 2 is written. T
 
 draw.io XML using the `mxgraph.aws4.*` shape library (AWS Architecture icons), exported to `docs/architecture.png` for the slides.
 
-Contents: users and remote regions, CloudFront, S3 (web), Application Load Balancer, two availability zones each with a private subnet running Fargate tasks, NAT gateway, DynamoDB, ECR, CloudWatch, and an "automation" lane showing CDK to CloudFormation. A separate faded lane shows the fleet migration tooling (Application Discovery Service, Migration Hub, Application Migration Service, AWS Transform) as the roadmap, clearly marked "not deployed in POC".
+Contents: users and remote regions, CloudFront, S3 (web), Application Load Balancer, two availability zones each with a private subnet running Fargate tasks, a NAT gateway in each AZ, gateway endpoints to DynamoDB and S3 (D39), DynamoDB, ECR, CloudWatch, and an "automation" lane showing CDK to CloudFormation. A separate faded lane shows the fleet migration tooling (Application Discovery Service, Migration Hub, Application Migration Service, AWS Transform) as the roadmap, clearly marked "not deployed in POC".
 
 ## Report: `docs/report.md`
 

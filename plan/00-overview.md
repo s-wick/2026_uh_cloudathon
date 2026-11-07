@@ -43,4 +43,4 @@ Aurora/RDS, WAF, custom domain with Route 53 and ACM, multi-region, CI/CD pipeli
 
 - Never commit or print `.env`, `*.pem`, `ec2`, `fingerprint`, `SSH.md`. `.gitignore` and `.claude/settings.json` enforce this.
 - Cost figures about AnyCompany's current state are assumptions and must be labelled "illustrative scenario". AWS-side figures come from the AWS Pricing Calculator.
-- Tear down with `cdk destroy` after judging (the NAT gateway bills hourly).
+- Tear down with `cdk destroy` after judging (the 2 NAT gateways bill hourly).
