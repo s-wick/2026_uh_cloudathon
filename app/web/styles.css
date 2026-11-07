@@ -68,7 +68,7 @@ button {
 }
 button:disabled { opacity: 0.5; cursor: not-allowed; }
 button:focus-visible { outline: 3px solid var(--text); outline-offset: 2px; }
-button[aria-pressed="true"] { background: #b3261e; border-color: #b3261e; }
+button.running { background: #b3261e; border-color: #b3261e; }
 .card button { margin-top: auto; }
 
 .status { min-height: 1.5em; font-weight: 600; }
@@ -79,7 +79,9 @@ button[aria-pressed="true"] { background: #b3261e; border-color: #b3261e; }
   position: fixed;
   right: 16px;
   bottom: 16px;
-  width: min(380px, calc(100vw - 32px));
+  width: min(440px, calc(100vw - 32px));
+  max-height: calc(100vh - 32px);
+  overflow-y: auto;
   background: var(--card);
   border: 1px solid var(--border);
   border-radius: 8px;
@@ -92,4 +94,14 @@ button[aria-pressed="true"] { background: #b3261e; border-color: #b3261e; }
 .demo dt { color: var(--muted); }
 .demo dd { margin: 0; font-family: ui-monospace, Consolas, monospace; overflow-wrap: anywhere; }
 .controls { display: flex; flex-wrap: wrap; gap: 6px; }
-.counts { font-family: ui-monospace, Consolas, monospace; overflow-wrap: anywhere; margin: 8px 0 0; }
+.beat { border-top: 1px solid var(--border); padding-top: 8px; margin-top: 8px; }
+.beat-h { font-size: 0.95rem; margin: 8px 0 4px; }
+.hint { color: var(--muted); margin: 0 0 6px; }
+.summary { margin: 6px 0; font-weight: 600; min-height: 1.2em; }
+.demo table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+.demo th { text-align: left; color: var(--muted); font-weight: normal; }
+.demo td { padding: 3px 4px 3px 0; vertical-align: top; font-family: ui-monospace, Consolas, monospace; }
+.bar { display: block; height: 6px; margin-top: 2px; border-radius: 3px; background: var(--accent); }
+.stale { opacity: 0.5; }
+.stale .bar { background: var(--muted); }
+.note { display: block; font-family: system-ui, sans-serif; font-style: italic; }

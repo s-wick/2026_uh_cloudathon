@@ -8,7 +8,7 @@ Hackathon project: migrate and modernize one legacy app (StoreOps) to AWS using 
 - API: Node.js 24 + Express 5 in `app/api`, container on ECS Fargate (ARM64). Test: `cd app/api && npm test` (memory store); `npm run test:dynamo` runs the same tests against DynamoDB Local on port 8000 (setup in `plan/01-sample-app.md`). Local page: `SERVE_WEB=1 npm start`, then http://localhost:8080.
 - Web: static HTML/JS in `app/web`, served by S3 + CloudFront.
 - Data: DynamoDB, on-demand.
-- Docs: `docs/` (draw.io diagram, report, story).
+- Docs: `docs/` (draw.io diagram, report, pitch story). `docs/design-story.md` is the living log of design choices (separate from the pitch story in `docs/story.md`).
 
 ## AWS access
 
@@ -23,3 +23,4 @@ Hackathon project: migrate and modernize one legacy app (StoreOps) to AWS using 
 - Keep the POC small: no features beyond what a demo beat needs. Cuts are listed in `plan/00-overview.md`.
 - Figures about AnyCompany's current costs are assumptions; label them "illustrative". AWS costs come from the Pricing Calculator.
 - Commit only when the user asks.
+- Log every design choice in `docs/design-story.md`, in the same change that makes it. A design choice is anything a teammate or judge could ask "why this?" about: a service, a library, a data shape, a default, a trade-off, a cut. Append a new `D<n>` entry under the current phase using the entry shape at the top of the file; never renumber. If a choice is reversed, add a new entry that says which one it replaces and edit the old one only to add "Replaced by D<n>". Style: terse fragments, plain words, easy for a human to skim.

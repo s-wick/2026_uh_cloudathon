@@ -87,29 +87,94 @@ async function refreshInfo() {
   $('d-store').textContent = info.store;
 }
 
-// Toggle buttons that run a loop while pressed.
-function toggleLoop(button, step) {
-  let running = false;
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+// Start/stop button that runs `step` repeatedly while on. Each start gets its
+// own token, so a quick stop-then-start never leaves two loops running.
+function toggleLoop(button, step, { start, stop }) {
+  let current = null;
+  button.textContent = start;
   button.addEventListener('click', async () => {
-    running = !running;
-    button.setAttribute('aria-pressed', String(running));
-    while (running) {
-      await step().catch(() => new Promise((r) => setTimeout(r, 500)));
+    if (current) {
+      current.stopped = true;
+      current = null;
+    } else {
+      const me = { stopped: false };
+      current = me;
+      (async () => {
+        while (!me.stopped) await step().catch(() => sleep(500));
+      })();
     }
+    button.textContent = current ? stop : start;
+    button.classList.toggle('running', Boolean(current));
   });
 }
 
 // Burn CPU: four parallel 500 ms burns at a time, to push the service over its CPU target.
-toggleLoop($('burn'), () => Promise.all([1, 2, 3, 4].map(() => api('/api/work?ms=500'))));
+toggleLoop($('burn'), () => Promise.all([1, 2, 3, 4].map(() => api('/api/work?ms=500'))), {
+  start: 'Burn CPU',
+  stop: 'Stop burning CPU',
+});
 
-// Spam requests: count responses per task to show load balancing across tasks and AZs.
-const seen = new Map();
-toggleLoop($('spam'), async () => {
-  const info = await api('/api/info');
-  const key = `${info.taskId.slice(0, 8)} (${info.az}, ${info.version})`;
-  seen.set(key, (seen.get(key) ?? 0) + 1);
-  $('d-counts').textContent = [...seen].map(([k, n]) => `${k}: ${n}`).join(' | ');
-  await new Promise((r) => setTimeout(r, 200));
+// Load balancing: ask "who are you?" about 5 times a second and tally answers per container.
+// A container that has not answered for STALE_MS while others still do is marked as stopped
+// (task killed, or replaced by a deploy). Failed requests are counted for the zero-downtime claim.
+const STALE_MS = 3000;
+const containers = new Map(); // taskId -> { taskId, az, version, count, lastSeen }
+let failures = 0;
+
+function renderContainers() {
+  const rows = [...containers.values()];
+  const total = rows.reduce((sum, r) => sum + r.count, 0);
+  const newest = Math.max(0, ...rows.map((r) => r.lastSeen));
+  $('lb-summary').textContent = total || failures ? `${total} answered, ${failures} failed` : '';
+  $('lb-table').hidden = rows.length === 0;
+  $('lb-rows').replaceChildren(
+    ...rows.map((r) => {
+      const share = Math.round((100 * r.count) / total);
+      const stale = newest - r.lastSeen > STALE_MS;
+      const bar = el('span', { className: 'bar' });
+      bar.style.width = `${share}%`;
+      return el(
+        'tr',
+        { className: stale ? 'stale' : '' },
+        el('td', { textContent: r.taskId.slice(0, 8) }),
+        el('td', { textContent: r.az }),
+        el('td', { textContent: r.version }),
+        el(
+          'td',
+          {},
+          `${r.count} (${share}%)`,
+          bar,
+          stale ? el('span', { className: 'note', textContent: 'stopped responding' }) : '',
+        ),
+      );
+    }),
+  );
+}
+
+toggleLoop(
+  $('spam'),
+  async () => {
+    try {
+      const info = await api('/api/info');
+      const row = containers.get(info.taskId) ?? { taskId: info.taskId, az: info.az, version: info.version, count: 0 };
+      row.count++;
+      row.lastSeen = Date.now();
+      containers.set(info.taskId, row);
+    } catch {
+      failures++;
+    }
+    renderContainers();
+    await sleep(200);
+  },
+  { start: 'Start', stop: 'Stop' },
+);
+
+$('lb-reset').addEventListener('click', () => {
+  containers.clear();
+  failures = 0;
+  renderContainers();
 });
 
 $('edge').addEventListener('click', () => api('/api/products').catch(() => {}));

@@ -26,20 +26,43 @@
 
   <details id="demo" class="demo" open>
     <summary>Demo panel</summary>
+    <h2 class="beat-h">Last request</h2>
     <dl>
       <dt>Version</dt><dd id="d-version">-</dd>
-      <dt>Task</dt><dd id="d-task">-</dd>
-      <dt>AZ</dt><dd id="d-az">-</dd>
-      <dt>Store</dt><dd id="d-store">-</dd>
-      <dt>Last request</dt><dd id="d-rtt">-</dd>
+      <dt>Container</dt><dd id="d-task">-</dd>
+      <dt>Availability Zone</dt><dd id="d-az">-</dd>
+      <dt>Database</dt><dd id="d-store">-</dd>
+      <dt>Round trip</dt><dd id="d-rtt">-</dd>
       <dt>Edge cache</dt><dd id="d-cache">-</dd>
     </dl>
-    <div class="controls">
-      <button type="button" id="burn" aria-pressed="false">Burn CPU</button>
-      <button type="button" id="spam" aria-pressed="false">Spam requests</button>
-      <button type="button" id="edge">Fetch catalog (edge test)</button>
-    </div>
-    <p id="d-counts" class="counts" aria-live="polite"></p>
+
+    <section class="beat" aria-labelledby="lb-h">
+      <h2 id="lb-h" class="beat-h">Load balancing</h2>
+      <p class="hint">Each request goes through the load balancer, which picks a container. In AWS you should see 2+ containers in 2 Availability Zones (separate data centers).</p>
+      <div class="controls">
+        <button type="button" id="spam">Start</button>
+        <button type="button" id="lb-reset">Reset</button>
+      </div>
+      <p id="lb-summary" class="summary" aria-live="polite"></p>
+      <table id="lb-table" hidden>
+        <thead>
+          <tr><th scope="col">Container</th><th scope="col">Availability Zone</th><th scope="col">Version</th><th scope="col">Requests</th></tr>
+        </thead>
+        <tbody id="lb-rows"></tbody>
+      </table>
+    </section>
+
+    <section class="beat" aria-labelledby="as-h">
+      <h2 id="as-h" class="beat-h">Autoscaling</h2>
+      <p class="hint">Makes the containers busy so AWS adds more (autoscaling). New containers appear in the table above.</p>
+      <button type="button" id="burn">Burn CPU</button>
+    </section>
+
+    <section class="beat" aria-labelledby="ec-h">
+      <h2 id="ec-h" class="beat-h">Edge cache</h2>
+      <p class="hint">Fetches the catalog again. Behind CloudFront, a repeat within 30 s is answered by the nearest edge location ("Hit from cloudfront"), not by the containers.</p>
+      <button type="button" id="edge">Fetch catalog</button>
+    </section>
   </details>
 
   <script src="app.js"></script>
